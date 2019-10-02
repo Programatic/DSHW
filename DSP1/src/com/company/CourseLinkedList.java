@@ -33,9 +33,8 @@ public class CourseLinkedList implements CourseList {
             trav = trav.getNext();
             count++;
         }
-        Course temp = parent.getNext();
+        course.setNext(trav);
         parent.setNext(course);
-        course.setNext(temp);
         size++;
     }
 
