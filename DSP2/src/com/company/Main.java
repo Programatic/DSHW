@@ -7,7 +7,7 @@ import java.util.*;
 public class Main {
 
     public static void main(String[] args) {
-	    huffmanCoder("/home/ford/IdeaProjects/DSP2/test.txt", "");
+	    huffmanCoder("/Users/ford/Documents/Computer Science/DSHW/DSP2/test.txt", "");
     }
 
     public static String huffmanCoder(String inputFileName, String outputFileName)
@@ -20,12 +20,13 @@ public class Main {
 
     public static void displayEncoding(HuffmanNode root)
     {
+        System.out.println("char : Freq : Encoded");
         Queue<HuffmanNode> queue = new LinkedList<HuffmanNode>();
         queue.add(root);
-        while (!queue.isEmpty()) {
+        while (!queue.isEmpty()) { //I had a working recursive version for DFS, but I changed it to BFS, IDK why
             HuffmanNode temp = queue.remove();
             if (temp.inChar() != null) {
-                System.out.println(temp.inChar() + ": " + temp.getFrequency() + " : ");
+                System.out.println(temp.inChar() + " : " + temp.getFrequency() + " : 0b" + Integer.toBinaryString(getEncoding(root, temp.inChar())));
             } else {
                 queue.add(temp.getLeft());
                 queue.add(temp.getRight());
@@ -33,15 +34,33 @@ public class Main {
         }
     }
 
-    public static short getEncoding(HuffmanNode root, char c)
+    public static int getEncoding(HuffmanNode root, char c)
     {
-        return getEncodingHelper(c, root, (short) 0b1);
+        return getEncodingHelper(c, root, 0);
     }
 
-    private static short getEncodingHelper(char c, HuffmanNode currNode, short progress)
+    private static int getEncodingHelper(char c, HuffmanNode currNode, int progress)
     {
+        int l = -0b1, r = -0b1;
+        HuffmanNode left = currNode.getLeft(), right = currNode.getRight();
 
-        return 0;
+        if (left == null && right == null) return  -0b1;
+        if (left.inChar() == null)
+            l = getEncodingHelper(c, left, progress);
+        if (right.inChar() == null)
+            r = getEncodingHelper(c, right, progress);
+
+        if (left.inChar() != null && left.inChar().equals(c))
+            return progress << 1;
+        if (right.inChar() != null && right.inChar().equals(c))
+            return (progress << 1) + 0b1;
+
+        if (l == -1 && r == -1) return -1;
+        if (l >= 0)
+            progress = l << 1;
+        else
+            progress = (r << 1) + 0b1;
+        return progress;
     }
 
     public static HuffmanNode merge(HuffmanNode n1, HuffmanNode n2)
