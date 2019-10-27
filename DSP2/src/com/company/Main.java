@@ -1,13 +1,13 @@
 package com.company;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.*;
 import java.util.*;
 
 public class Main {
+    static HashMap<Character, Integer> memo = new HashMap<>();
 
     public static void main(String[] args) {
-	    huffmanCoder("/Users/ford/Documents/Computer Science/DSHW/DSP2/test.txt", "");
+	    huffmanCoder("test.txt", "out.txt");
     }
 
     public static String huffmanCoder(String inputFileName, String outputFileName)
@@ -15,7 +15,33 @@ public class Main {
         List<HuffmanNode> freqList = createFrequencyList(inputFileName);
         HuffmanNode tree = createHuffmanTree(freqList);
         displayEncoding(tree);
+        try {
+            writeHuffmanOutput(inputFileName, outputFileName, tree);
+        } catch (Exception e) {
+
+        }
         return "";
+    }
+
+    public static void writeHuffmanOutput(String inputFileName, String outputFileName, HuffmanNode root) throws Exception {
+        OutputStream os = new FileOutputStream(new File(outputFileName));
+        BufferedReader br = new BufferedReader(new FileReader(inputFileName));
+        int ch;
+        int seq = 0;
+        while ((ch = br.read()) != -1) {
+            if (bitLength(seq) + bitLength(ch) > 8) {
+                    os.write(seq);
+                    seq = 0;
+                    continue;
+            }
+            int n = reverseBits(ch);
+            while (n > 0) {
+                seq <<= 1;
+                if ((n & 1) == 1) seq ^= 1;
+                n >>= 1;
+            }
+        }
+        os.close();
     }
 
     public static void displayEncoding(HuffmanNode root)
@@ -34,9 +60,34 @@ public class Main {
         }
     }
 
+    public static int bitLength(int n)
+    {
+        int count = 0;
+        while (n > 0) {
+            n >>= 1;
+            count++;
+        }
+        return count;
+    }
+
     public static int getEncoding(HuffmanNode root, char c)
     {
-        return getEncodingHelper(c, root, 0);
+        if (memo.containsKey(c)) return memo.get(c);
+        int res = reverseBits(getEncodingHelper(c, root, 0b1)) >> 1;
+        memo.put(c, res);
+        return res;
+    }
+
+    public static int reverseBits(int n)
+    {
+        int ret = 0;
+
+        while (n > 0) {
+            ret <<= 1;
+            if ((n & 0b1) == 0b1) ret ^= 1;
+            n >>= 1;
+        }
+        return ret;
     }
 
     private static int getEncodingHelper(char c, HuffmanNode currNode, int progress)
@@ -93,7 +144,6 @@ public class Main {
     {
         //Create the frequency list, would have preferred to use a priority queue
         List<HuffmanNode> freqList = new ArrayList<HuffmanNode>();
-
         try {
             BufferedReader br = new BufferedReader(new FileReader(inputFileName));
             int ch;
