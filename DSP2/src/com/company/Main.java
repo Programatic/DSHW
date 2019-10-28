@@ -27,22 +27,21 @@ public class Main {
     public static void writeHuffmanOutput(String inputFileName, String outputFileName, HuffmanNode root) throws Exception {
         OutputStream os = new FileOutputStream(new File(outputFileName));
         BufferedReader br = new BufferedReader(new FileReader(inputFileName));
-        boolean fb = true;
         int ch;
         int seq = 0;
+        int bcounter = 0;
         while ((ch = br.read()) != -1) {
             int n = getExtraPreservedEncoding(root, (char) ch);
-            if (bitLength(seq) + bitLength(n) - 1 > 8) {
-                    os.write(seq);
-                    seq = 0;
-                    continue;
-            }
-
             int iter = bitLength(n) - 1;
             for (int i = 0; i < iter; i++) {
+                if (bcounter == 8) {
+                    os.write(seq);
+                    bcounter = 0;
+                }
                 seq <<= 1;
                 if ((n & 1) == 1) seq ^= 1;
                 n >>= 1;
+                bcounter++;
             }
         }
         os.close();
