@@ -5,6 +5,7 @@ import java.util.*;
 
 public class Main {
     static HashMap<Character, Integer> memo = new HashMap<>();
+    static HashMap<Character, Integer> memoEP = new HashMap<>();
 
     public static void main(String[] args) {
 	    huffmanCoder("test.txt", "out.txt");
@@ -26,16 +27,19 @@ public class Main {
     public static void writeHuffmanOutput(String inputFileName, String outputFileName, HuffmanNode root) throws Exception {
         OutputStream os = new FileOutputStream(new File(outputFileName));
         BufferedReader br = new BufferedReader(new FileReader(inputFileName));
+        boolean fb = true;
         int ch;
         int seq = 0;
         while ((ch = br.read()) != -1) {
-            if (bitLength(seq) + bitLength(ch) > 8) {
+            int n = getExtraPreservedEncoding(root, (char) ch);
+            if (bitLength(seq) + bitLength(n) - 1 > 8) {
                     os.write(seq);
                     seq = 0;
                     continue;
             }
-            int n = reverseBits(ch);
-            while (n > 0) {
+
+            int iter = bitLength(n) - 1;
+            for (int i = 0; i < iter; i++) {
                 seq <<= 1;
                 if ((n & 1) == 1) seq ^= 1;
                 n >>= 1;
@@ -52,7 +56,7 @@ public class Main {
         while (!queue.isEmpty()) { //I had a working recursive version for DFS, but I changed it to BFS, IDK why
             HuffmanNode temp = queue.remove();
             if (temp.inChar() != null) {
-                System.out.println(temp.inChar() + " : " + temp.getFrequency() + " : 0b" + Integer.toBinaryString(getEncoding(root, temp.inChar())));
+                System.out.println(temp.inChar() + " : " + temp.getFrequency() + " : 0b" + Integer.toBinaryString(getEncoding(root, temp.inChar())) + " : " + Integer.toBinaryString(getExtraPreservedEncoding(root, temp.inChar())));
             } else {
                 queue.add(temp.getLeft());
                 queue.add(temp.getRight());
@@ -75,6 +79,14 @@ public class Main {
         if (memo.containsKey(c)) return memo.get(c);
         int res = reverseBits(getEncodingHelper(c, root, 0b1)) >> 1;
         memo.put(c, res);
+        return res;
+    }
+
+    public static int getExtraPreservedEncoding(HuffmanNode root, char c)
+    {
+        if (memoEP.containsKey(c)) return memoEP.get(c);
+        int res = getEncodingHelper(c, root, 0b1);
+        memoEP.put(c, res);
         return res;
     }
 
